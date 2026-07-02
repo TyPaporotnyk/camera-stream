@@ -3,15 +3,6 @@ cameras:
     name: Front door
     rtsp_url: rtsp://user:password@192.168.1.10:554/stream1
     enabled: false
-    input_args:
-      - -rtsp_transport
-      - tcp
-      - -stimeout
-      - "5000000"
-    output_args:
-      - -an
-      - -c:v
-      - copy
 
   - id: warehouse
     name: Warehouse

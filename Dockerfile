@@ -18,4 +18,4 @@ RUN poetry config virtualenvs.create false \
 
 COPY app ./app
 
-CMD ["gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
+CMD ["gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "--workers", "1", "-b", "0.0.0.0:8000"]

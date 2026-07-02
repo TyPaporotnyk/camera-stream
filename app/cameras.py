@@ -9,8 +9,47 @@ from pydantic import BaseModel, Field, field_validator
 
 
 CAMERA_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
-DEFAULT_INPUT_ARGS = ["-rtsp_transport", "tcp", "-timeout", "5000000"]
-DEFAULT_OUTPUT_ARGS = ["-an", "-c:v", "copy"]
+DEFAULT_INPUT_ARGS = [
+    "-rtsp_transport",
+    "tcp",
+    "-timeout",
+    "10000000",
+    "-analyzeduration",
+    "1000000",
+    "-probesize",
+    "1000000",
+    "-fflags",
+    "nobuffer",
+    "-flags",
+    "low_delay",
+    "-max_delay",
+    "500000",
+]
+DEFAULT_OUTPUT_ARGS = [
+    "-map",
+    "0:v:0",
+    "-an",
+    "-dn",
+    "-sn",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-tune",
+    "zerolatency",
+    "-profile:v",
+    "baseline",
+    "-level",
+    "3.1",
+    "-pix_fmt",
+    "yuv420p",
+    "-force_key_frames",
+    "expr:gte(t,n_forced*2)",
+    "-sc_threshold",
+    "0",
+    "-avoid_negative_ts",
+    "make_zero",
+]
 
 
 class Camera(BaseModel):

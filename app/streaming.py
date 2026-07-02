@@ -59,7 +59,7 @@ class FfmpegCommandBuilder:
             "-hls_list_size",
             str(self.settings.hls_list_size),
             "-hls_flags",
-            "delete_segments+program_date_time",
+            "delete_segments+program_date_time+independent_segments",
             "-hls_segment_filename",
             str(output_dir / "segment_%05d.ts"),
             str(output_dir / "index.m3u8"),
