@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ cam_name|capitalize }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.0/hls.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        h1 {
+            color: white;
+            font-family: sans-serif;
+            margin-bottom: 1rem;
+        }
+
+        a {
+            color: white;
+            margin-top: 1rem;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <video id="video" autoplay muted playsinline></video>
+
+    <script>
+        const video = document.getElementById('video');
+        const streamPath = "{{ stream_path }}";
+
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                liveSyncDurationCount: 2,
+                liveMaxLatencyDurationCount: 5,
+                maxBufferLength: 10,
+                enableWorker: true,
+                backBufferLength: 5,
+                maxLiveSyncPlaybackRate: 1.5
+            });
+
+            hls.loadSource(streamPath);
+            hls.attachMedia(video);
+            hls.startLoad();
+
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                console.error('HLS.js error:', data);
+                if (!data.fatal) {
+                    return;
+                }
+
+                if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                    hls.recoverMediaError();
+                    return;
+                }
+
+                hls.destroy();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = streamPath;
+            video.addEventListener('error', () => console.error('Ошибка воспроизведения HLS'));
+        }
+    </script>
+</body>
+
+</html>
