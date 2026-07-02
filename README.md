@@ -16,8 +16,8 @@ docker compose up --build
 Открыть плеер:
 
 ```text
-http://localhost:8080/player/kran_1
-http://localhost:8080/player/kran_2
+http://localhost:8080/player/cam_1
+http://localhost:8080/player/cam_10
 ```
 
 Для своего конфига:
@@ -48,4 +48,9 @@ cameras:
     name: Front door
     rtsp_url: rtsp://user:password@192.168.1.10:554/stream1
     enabled: true
+    transcode: false
 ```
+
+`transcode: false` — легкий режим, `ffmpeg` делает `-c:v copy`; подходит для слабого сервера, если камера отдает H.264 substream.
+
+`transcode: true` — совместимый режим, `ffmpeg` перекодирует в H.264 через `libx264`; надежнее для браузера, но сильно грузит CPU.

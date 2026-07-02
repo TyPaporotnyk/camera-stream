@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 CAMERA_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -25,7 +25,18 @@ DEFAULT_INPUT_ARGS = [
     "-max_delay",
     "500000",
 ]
-DEFAULT_OUTPUT_ARGS = [
+COPY_OUTPUT_ARGS = [
+    "-map",
+    "0:v:0",
+    "-an",
+    "-dn",
+    "-sn",
+    "-c:v",
+    "copy",
+    "-avoid_negative_ts",
+    "make_zero",
+]
+TRANSCODE_OUTPUT_ARGS = [
     "-map",
     "0:v:0",
     "-an",
@@ -52,13 +63,38 @@ DEFAULT_OUTPUT_ARGS = [
 ]
 
 
+def default_input_args() -> list[str]:
+    return DEFAULT_INPUT_ARGS.copy()
+
+
+def copy_output_args() -> list[str]:
+    return COPY_OUTPUT_ARGS.copy()
+
+
+def transcode_output_args() -> list[str]:
+    return TRANSCODE_OUTPUT_ARGS.copy()
+
+
 class Camera(BaseModel):
     id: str
     rtsp_url: str
     name: str | None = None
     enabled: bool = True
-    input_args: list[str] = Field(default_factory=lambda: DEFAULT_INPUT_ARGS.copy())
-    output_args: list[str] = Field(default_factory=lambda: DEFAULT_OUTPUT_ARGS.copy())
+    transcode: bool = False
+    input_args: list[str] = Field(default_factory=default_input_args)
+    output_args: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def set_default_output_args(self) -> Camera:
+        if self.output_args:
+            return self
+
+        if self.transcode:
+            self.output_args = transcode_output_args()
+        else:
+            self.output_args = copy_output_args()
+
+        return self
 
     @field_validator("id")
     @classmethod
