@@ -1,4 +1,30 @@
 services:
+  certbot-selfsigned:
+    image: certbot/certbot:v2.11.0
+    environment:
+      HTTPS_CERT_CN: ${HTTPS_CERT_CN:-camera-stream.local}
+      HTTPS_CERT_IP: ${HTTPS_CERT_IP:-127.0.0.1}
+      SELF_SIGNED_DAYS: ${SELF_SIGNED_DAYS:-825}
+    entrypoint:
+      - sh
+      - -c
+    command:
+      - |
+        set -eu
+        cert_dir=/etc/letsencrypt/live/local
+        if [ ! -f "$$cert_dir/fullchain.pem" ] || [ ! -f "$$cert_dir/privkey.pem" ]; then
+          mkdir -p "$$cert_dir"
+          openssl req -x509 -nodes -newkey rsa:2048 \
+            -days "$$SELF_SIGNED_DAYS" \
+            -keyout "$$cert_dir/privkey.pem" \
+            -out "$$cert_dir/fullchain.pem" \
+            -subj "/CN=$$HTTPS_CERT_CN" \
+            -addext "subjectAltName=DNS:$$HTTPS_CERT_CN,IP:$$HTTPS_CERT_IP"
+        fi
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+    restart: "no"
+
   app:
     build: .
     environment:
@@ -22,13 +48,19 @@ services:
   nginx:
     image: nginx:1.27-alpine
     depends_on:
-      - app
+      certbot-selfsigned:
+        condition: service_completed_successfully
+      app:
+        condition: service_started
     ports:
       - "8080:80"
+      - "8443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot-etc:/etc/letsencrypt:ro
       - hls:/var/lib/camera-stream/hls:ro
     restart: unless-stopped
 
 volumes:
+  certbot-etc:
   hls:

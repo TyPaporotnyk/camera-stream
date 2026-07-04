@@ -18,6 +18,38 @@ docker compose up --build
 ```text
 http://localhost:8080/player/cam_1
 http://localhost:8080/player/cam_10
+https://localhost:8443/player/cam_1
+https://localhost:8443/player/cam_10
+```
+
+## HTTPS без домена
+
+Доверенный Let's Encrypt сертификат через certbot нельзя выпустить без домена:
+ACME-проверка должна подтвердить владение DNS-именем. Для запуска по IP compose
+поднимает init-контейнер `certbot-selfsigned` на базе образа `certbot/certbot`,
+который один раз генерирует self-signed сертификат в volume `certbot-etc`.
+
+По умолчанию сертификат содержит `DNS:camera-stream.local` и `IP:127.0.0.1`.
+Для доступа с другого устройства укажите IP сервера:
+
+```bash
+HTTPS_CERT_IP=192.168.1.50 docker compose up -d --build
+```
+
+После этого плеер будет доступен по адресу:
+
+```text
+https://192.168.1.50:8443/player/cam_1
+```
+
+Браузер покажет предупреждение о недоверенном сертификате, потому что сертификат
+self-signed. Если нужно пересоздать сертификат с другим IP/CN, удалите volume и
+поднимите compose заново:
+
+```bash
+docker compose down
+docker volume rm camera-stream_certbot-etc
+HTTPS_CERT_IP=192.168.1.50 docker compose up -d --build
 ```
 
 Для своего конфига:
